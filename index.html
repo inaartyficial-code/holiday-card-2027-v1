@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Season's Greetings &amp; Happy New Year</title>
+  
+  <!-- Tailwind CSS for responsive layout & UI controls -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Elegant Serif & Sans-Serif Google Fonts matching the video typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-midnight: #070d19;
+      --gold-primary: #f6d365;
+      --gold-warm: #fff7e6;
+      --navy-card: #1b2a4a;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: var(--bg-midnight);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Ambient winter radial glow behind the 9:16 portrait stage */
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 45%, rgba(28, 52, 94, 0.45) 0%, rgba(7, 13, 25, 0.98) 75%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Dynamic Stage Wrapper that automatically adapts to the video's exact native aspect ratio */
+    #stage-container {
+      position: relative;
+      z-index: 1;
+      aspect-ratio: var(--video-aspect, 3 / 4);
+      height: 100dvh;
+      max-height: 100dvh;
+      max-width: 100vw;
+      width: auto;
+      background: #050912;
+      box-shadow: 0 25px 70px -15px rgba(0, 0, 0, 0.85), 0 0 40px rgba(246, 211, 101, 0.08);
+      overflow: hidden;
+      touch-action: none; /* Enables smooth custom swipe gestures */
+    }
+
+    #greeting-video {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
+    }
+
+    /* Typography & Dynamic Overlays locked to exact video percentage coordinates */
+    .serif-display {
+      font-family: 'Playfair Display', Georgia, serif;
+    }
+
+    /* Recipient Name inside white card box below "Dearest," */
+    #recipient-overlay {
+      position: absolute;
+      top: 47%;
+      left: 23%;
+      width: 54%;
+      height: 7.5%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #102347;
+      font-family: 'Great Vibes', cursive;
+      font-weight: 500;
+      /* Responsive fluid font size scaled to the stage width */
+      font-size: clamp(1.6rem, 5.8cqmin, 2.25rem);
+      line-height: 1.15;
+      padding: 0 6px;
+      pointer-events: none;
+      user-select: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+      z-index: 15;
+      word-break: break-word;
+    }
+
+    #recipient-overlay.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Sender Name below "Warm wishes," */
+    #sender-overlay {
+      position: absolute;
+      top: 74.8%;
+      left: 20%;
+      width: 60%;
+      height: 6%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      color: #FFF8E7;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 600;
+      font-style: italic;
+      font-size: clamp(0.95rem, 4.1cqmin, 1.6rem);
+      line-height: 1.15;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8), 0 0 18px rgba(246, 211, 101, 0.5);
+      pointer-events: none;
+      user-select: none;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+      z-index: 15;
+      word-break: break-word;
+    }
+
+    #sender-overlay.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Full-frame Swipe Zone for Pause 1 (0:00:06:01) */
+    #swipe-zone {
+      position: absolute;
+      inset: 0;
+      z-index: 20;
+      display: none;
+      cursor: grab;
+    }
+
+    #swipe-zone.active {
+      display: block;
+    }
+
+    #swipe-zone:active {
+      cursor: grabbing;
+    }
+
+    /* Sparkle canvas for tactile golden trail on swipe */
+    #sparkle-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 21;
+    }
+
+    /* Gift Box Hotspot for Pause 2 (00:00:16:02) - No text prompt added */
+    #gift-hotspot {
+      position: absolute;
+      left: 39%;
+      top: 76%;
+      width: 22%;
+      height: 15%;
+      z-index: 25;
+      display: none;
+      background: transparent;
+      border: none;
+      border-radius: 16px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    #gift-hotspot.active {
+      display: block;
+      animation: subtleGiftAura 2.2s infinite ease-in-out;
+    }
+
+    @keyframes subtleGiftAura {
+      0%, 100% {
+        box-shadow: 0 0 0 0 rgba(255, 226, 138, 0);
+      }
+      50% {
+        box-shadow: 0 0 22px 4px rgba(255, 226, 138, 0.28);
+      }
+    }
+
+    /* Glassmorphism utility */
+    .glass-panel {
+      background: rgba(10, 18, 36, 0.62);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 235, 185, 0.22);
+    }
+
+    /* Gentle pulse on initial play button */
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-4px); }
+    }
+    .float-slow {
+      animation: gentleFloat 3s ease-in-out infinite;
+    }
+
+    /* Allow text selection inside the link generator inputs */
+    input {
+      user-select: text;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main 9:16 Video & Interactive Stage -->
+  <main id="stage-container" aria-label="Interactive Holiday Greeting">
+    
+    <!-- HTML5 Video with Exact Filenames (AV1 WebM Primary + Generic WebM + H.264 MP4 Fallback) -->
+    <video id="greeting-video" playsinline webkit-playsinline preload="auto" muted>
+      <source src="Video-Greetings_1M.webm" type="video/webm; codecs=av01.0.05M.08" />
+      <source src="Video-Greetings_1M.webm" type="video/webm" />
+      <source src="Video-Greetings_1M.mp4" type="video/mp4" />
+      Your browser does not support HTML5 video.
+    </video>
+
+    <!-- Hidden File Input for Instant Local Testing if Hosted Files Aren't Present -->
+    <input id="local-video-picker" type="file" accept="video/mp4,video/webm,video/*" class="hidden" />
+
+    <!-- Canvas for subtle golden sparkle trail during Pause 1 swipe -->
+    <canvas id="sparkle-canvas"></canvas>
+
+    <!-- Read-Only Personalized Name Overlays -->
+    <div id="recipient-overlay" aria-live="polite"></div>
+    <div id="sender-overlay" aria-live="polite"></div>
+
+    <!-- Pause 1 (6.03s): Full-stage Swipe in Any Direction -->
+    <div id="swipe-zone" role="button" tabindex="0" aria-label="Swipe in any direction to ring the bell"></div>
+
+    <!-- Pause 2 (16.07s): Invisible Hotspot directly over the Gift Box (no extra text prompt) -->
+    <button id="gift-hotspot" type="button" aria-label="Tap the gift box to open"></button>
+
+    <!-- Top-Right Subtle Controls (Audio Mute/Unmute & Discrete Link Creator Icon) -->
+    <div class="absolute top-3 right-3 z-40 flex items-center gap-2">
+      <!-- Discrete Link Creator button (hidden automatically when ?to= or ?from= is present) -->
+      <button
+        id="open-builder-btn"
+        type="button"
+        title="Personalize & Create Shareable Link"
+        class="glass-panel p-2.5 rounded-full text-amber-100/80 hover:text-amber-200 hover:bg-white/10 transition shadow-lg"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+          <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+        </svg>
+      </button>
+
+      <!-- Audio Mute / Unmute Toggle -->
+      <button
+        id="mute-toggle-btn"
+        type="button"
+        title="Toggle Sound"
+        aria-label="Toggle Sound"
+        class="glass-panel p-2.5 rounded-full text-amber-100 hover:text-white hover:bg-white/10 transition shadow-lg"
+      >
+        <!-- Unmuted Icon -->
+        <svg id="icon-sound-on" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+        <!-- Muted Icon -->
+        <svg id="icon-sound-off" xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 hidden text-rose-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+          <line x1="23" y1="9" x2="17" y2="15"/>
+          <line x1="17" y1="9" x2="23" y2="15"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Initial Start Overlay (Unlocks Video Audio + Web Audio API Music Box) -->
+    <div id="start-overlay" class="absolute inset-0 z-30 flex flex-col items-center justify-center p-6 bg-[#070d19]/75 backdrop-blur-sm transition-opacity duration-700">
+      <div class="glass-panel float-slow rounded-3xl px-7 py-8 text-center max-w-[88%] shadow-2xl">
+        <!-- Decorative Gold Star / Bell Icon -->
+        <div class="w-14 h-14 mx-auto mb-4 rounded-full bg-amber-300/15 border border-amber-200/30 flex items-center justify-center text-amber-200 shadow-inner">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2l2.4 7.4h7.6l-6.2 4.5 2.4 7.4-6.2-4.5-6.2 4.5 2.4-7.4-6.2-4.5h7.6z"/>
+          </svg>
+        </div>
+
+        <p class="text-xs uppercase tracking-[0.22em] text-amber-200/80 mb-1.5">A Special Holiday Wish</p>
+        <h1 id="welcome-recipient-title" class="serif-display text-2xl font-semibold text-amber-50 mb-5 leading-snug">
+          For You
+        </h1>
+
+        <button
+          id="start-btn"
+          type="button"
+          class="w-full py-3.5 px-6 rounded-full bg-gradient-to-r from-amber-200 via-yellow-300 to-amber-200 text-[#131d33] font-semibold text-sm tracking-wide shadow-lg shadow-amber-400/20 hover:brightness-105 active:scale-95 transition cursor-pointer"
+        >
+          Tap to Start Greeting
+        </button>
+
+        <!-- Diagnostic Banner & Local File Loader when video files aren't found in the current directory -->
+        <div id="missing-video-banner" class="hidden mt-4 pt-4 border-t border-amber-200/20 text-left">
+          <p class="text-[11px] text-amber-200/90 leading-relaxed mb-2.5">
+            <strong>Preview Notice:</strong> <code class="text-amber-100">Video-Greetings_1M.mp4</code> / <code class="text-amber-100">.webm</code> was not found in this folder yet. Place them alongside <code class="text-amber-100">index.html</code> when deploying, or load your local file now to preview:
+          </p>
+          <button
+            id="load-local-video-btn"
+            type="button"
+            class="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 border border-amber-200/30 text-amber-100 text-xs font-medium transition cursor-pointer text-center"
+          >
+            Load Local Video File (.mp4 / .webm)
+          </button>
+        </div>
+
+        <p id="sound-hint-text" class="mt-3.5 text-[11px] text-slate-300/75">
+          Turn sound on for the full experience
+        </p>
+      </div>
+    </div>
+
+    <!-- Replay Button Overlay when Video Finishes -->
+    <div id="replay-container" class="absolute bottom-5 left-0 right-0 z-30 flex justify-center pointer-events-none opacity-0 transition-opacity duration-700">
+      <button
+        id="replay-btn"
+        type="button"
+        class="pointer-events-auto glass-panel px-5 py-2.5 rounded-full text-amber-100 text-xs font-medium tracking-wider uppercase flex items-center gap-2 hover:bg-white/15 active:scale-95 transition shadow-xl cursor-pointer"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="1 4 1 10 7 10"/>
+          <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+        </svg>
+        Replay Greeting
+      </button>
+    </div>
+
+    <!-- Discrete Shareable Link Generator Modal (For Sender Convenience) -->
+    <div id="link-builder-modal" class="absolute inset-0 z-50 hidden items-center justify-center p-5 bg-[#050912]/85 backdrop-blur-md">
+      <div class="glass-panel w-full rounded-3xl p-5 text-slate-100 shadow-2xl border border-amber-200/25">
+        <div class="flex items-center justify-between mb-3">
+          <h2 class="serif-display text-lg font-semibold text-amber-100">Personalize Greeting Link</h2>
+          <button id="close-builder-btn" type="button" class="p-1.5 rounded-full text-slate-300 hover:text-white hover:bg-white/10">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        <p class="text-xs text-slate-300/85 mb-4 leading-relaxed">
+          Enter the names below to generate a custom read-only link. Recipients will see their names appear automatically in the card.
+        </p>
+
+        <div class="space-y-3">
+          <div>
+            <label for="input-to" class="block text-[11px] uppercase tracking-wider text-amber-200/80 mb-1">Recipient Name ("Dearest,")</label>
+            <input
+              id="input-to"
+              type="text"
+              maxlength="36"
+              placeholder="e.g. Sarah & Family"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-300"
+            />
+          </div>
+
+          <div>
+            <label for="input-from" class="block text-[11px] uppercase tracking-wider text-amber-200/80 mb-1">Sender Name ("Warm wishes,")</label>
+            <input
+              id="input-from"
+              type="text"
+              maxlength="36"
+              placeholder="e.g. The Andersons"
+              class="w-full px-3.5 py-2.5 rounded-xl bg-slate-900/80 border border-slate-700 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-300"
+            />
+          </div>
+
+          <div class="pt-1">
+            <label for="generated-url" class="block text-[11px] uppercase tracking-wider text-amber-200/80 mb-1">Shareable URL</label>
+            <div class="flex gap-2">
+              <input
+                id="generated-url"
+                type="text"
+                readonly
+                class="w-full px-3 py-2 rounded-xl bg-slate-950/90 border border-slate-800 text-xs text-amber-100/90 focus:outline-none"
+              />
+              <button
+                id="copy-url-btn"
+                type="button"
+                class="px-3.5 py-2 rounded-xl bg-amber-300 text-slate-950 font-semibold text-xs whitespace-nowrap hover:bg-amber-200 active:scale-95 transition cursor-pointer"
+              >
+                Copy
+              </button>
+            </div>
+            <p id="copy-feedback" class="text-[11px] text-emerald-300 mt-1.5 h-4 opacity-0 transition-opacity">
+              Link copied to clipboard!
+            </p>
+          </div>
+        </div>
+
+        <div class="mt-4 pt-3 border-t border-white/10 flex justify-between items-center">
+          <button
+            id="apply-preview-btn"
+            type="button"
+            class="w-full py-2.5 rounded-xl bg-white/10 hover:bg-white/15 text-amber-100 text-xs font-medium transition cursor-pointer"
+          >
+            Apply Names &amp; Preview Now
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    /**
+     * ============================================================================
+     * INTERACTIVE HOLIDAY GREETING CONTROLLER
+     * ============================================================================
+     * Timeline Anchors (Timecode -> Seconds):
+     * - Pause 1 (00:00:06:01) => 6.03s  | Swipe in any direction to continue
+     * - Pause 2 (00:00:16:02) => 16.07s | Tap the gift box to open
+     * - Stamp 3 (00:00:22:20) => 22.67s | Fade in Recipient Name under "Dearest,"
+     * - Stamp 4 (00:00:25:19) => 25.63s | Fade in Sender Name under "Warm wishes,"
+     */
+      // --- Exact Timeline Constants (30fps timecodes converted to seconds) ---
+      const TIMESTAMPS = {
+        PAUSE_1_SWIPE: 6.033,
+        PAUSE_2_TAP: 16.067,
+        SHOW_RECIPIENT: 22.667,
+        SHOW_SENDER: 25.633,
+        END_REPLAY: 31.5
+      };
+
+      // --- DOM References ---
+      const stage = document.getElementById('stage-container');
+      const video = document.getElementById('greeting-video');
+      const localVideoPicker = document.getElementById('local-video-picker');
+      const missingVideoBanner = document.getElementById('missing-video-banner');
+      const loadLocalVideoBtn = document.getElementById('load-local-video-btn');
+      const startOverlay = document.getElementById('start-overlay');
+      const startBtn = document.getElementById('start-btn');
+      const welcomeTitle = document.getElementById('welcome-recipient-title');
+      const swipeZone = document.getElementById('swipe-zone');
+      const giftHotspot = document.getElementById('gift-hotspot');
+      const recipientOverlay = document.getElementById('recipient-overlay');
+      const senderOverlay = document.getElementById('sender-overlay');
+      const replayContainer = document.getElementById('replay-container');
+      const replayBtn = document.getElementById('replay-btn');
+      const muteToggleBtn = document.getElementById('mute-toggle-btn');
+      const iconSoundOn = document.getElementById('icon-sound-on');
+      const iconSoundOff = document.getElementById('icon-sound-off');
+
+      // Link Builder DOM
+      const openBuilderBtn = document.getElementById('open-builder-btn');
+      const closeBuilderBtn = document.getElementById('close-builder-btn');
+      const linkBuilderModal = document.getElementById('link-builder-modal');
+      const inputTo = document.getElementById('input-to');
+      const inputFrom = document.getElementById('input-from');
+      const generatedUrlInput = document.getElementById('generated-url');
+      const copyUrlBtn = document.getElementById('copy-url-btn');
+      const copyFeedback = document.getElementById('copy-feedback');
+      const applyPreviewBtn = document.getElementById('apply-preview-btn');
+
+      // --- Playback & Interaction State ---
+      const state = {
+        started: false,
+        pausedAt1: false,
+        completed1: false,
+        pausedAt2: false,
+        completed2: false,
+        isMuted: false,
+        videoMissing: false,
+        recipientName: 'Friend & Family',
+        senderName: 'Your Friends'
+      };
+
+      // ============================================================================
+      // 0. VIDEO SOURCE DIAGNOSTICS & LOCAL FILE FALLBACK LOADER
+      // ============================================================================
+      function handleVideoLoadError() {
+        state.videoMissing = true;
+        missingVideoBanner.classList.remove('hidden');
+      }
+
+      // Listen on the last <source> element for total fallback failure, plus video error
+      const videoSources = video.querySelectorAll('source');
+      if (videoSources.length > 0) {
+        videoSources[videoSources.length - 1].addEventListener('error', handleVideoLoadError);
+      }
+      video.addEventListener('error', handleVideoLoadError);
+      video.addEventListener('loadedmetadata', () => {
+        if (video.videoWidth && video.videoHeight) {
+          stage.style.setProperty('--video-aspect', `${video.videoWidth} / ${video.videoHeight}`);
+          adjustStageDimensions();
+          resizeSparkleCanvas();
+        }
+      });
+      video.addEventListener('loadeddata', () => {
+        state.videoMissing = false;
+        missingVideoBanner.classList.add('hidden');
+      });
+
+      function adjustStageDimensions() {
+        const vw = video.videoWidth || 3;
+        const vh = video.videoHeight || 4;
+        const videoRatio = vw / vh;
+        const windowRatio = window.innerWidth / window.innerHeight;
+
+        if (windowRatio < videoRatio) {
+          stage.style.width = '100vw';
+          stage.style.height = 'auto';
+        } else {
+          stage.style.width = 'auto';
+          stage.style.height = '100dvh';
+        }
+      }
+
+      window.addEventListener('resize', adjustStageDimensions);
+
+      // Local video file picker for instant offline/preview testing
+      loadLocalVideoBtn.addEventListener('click', () => {
+        localVideoPicker.click();
+      });
+
+      localVideoPicker.addEventListener('change', (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const objectUrl = URL.createObjectURL(file);
+        video.src = objectUrl;
+        video.load();
+        state.videoMissing = false;
+        missingVideoBanner.classList.add('hidden');
+        startGreeting();
+      });
+
+      // ============================================================================
+      // 1. READ-ONLY URL PARAMETER PARSING (?to=...&from=...)
+      // ============================================================================
+      function initPersonalizationFromURL() {
+        const params = new URLSearchParams(window.location.search);
+        const toParam = params.get('to') || params.get('recipient');
+        const fromParam = params.get('from') || params.get('sender');
+
+        const hasCustomParams = Boolean((toParam && toParam.trim()) || (fromParam && fromParam.trim()));
+
+        if (toParam && toParam.trim()) {
+          state.recipientName = toParam.trim();
+        }
+        if (fromParam && fromParam.trim()) {
+          state.senderName = fromParam.trim();
+        }
+
+        // Apply names to read-only overlays and welcome card
+        applyNamesToDOM();
+
+        // Hide the link-creator icon automatically when opened via a personalized link
+        // so recipients have a completely pure, non-editable greeting experience.
+        if (hasCustomParams) {
+          openBuilderBtn.style.display = 'none';
+        }
+      }
+
+      function applyNamesToDOM() {
+        recipientOverlay.textContent = state.recipientName;
+        senderOverlay.textContent = state.senderName;
+        welcomeTitle.textContent = state.recipientName === 'Friend & Family'
+          ? 'Season’s Greetings'
+          : `For ${state.recipientName}`;
+      }
+
+      // ============================================================================
+      // 2. WEB AUDIO API: MILD HOLIDAY MUSIC BOX WITH SMOOTH FADE IN / FADE OUT
+      // ============================================================================
+      class HolidayMusicBox {
+        constructor() {
+          this.ctx = null;
+          this.masterGain = null;
+          this.isPlaying = false;
+          this.noteTimer = null;
+          this.stepIndex = 0;
+
+          // Gentle winter celesta melody ("Silent Night" & twinkling holiday motif in F Major)
+          // Frequencies in Hz + duration in beats
+          this.melody = [
+            { freq: 349.23, dur: 1.5 }, // F4
+            { freq: 392.00, dur: 0.5 }, // G4
+            { freq: 349.23, dur: 1.0 }, // F4
+            { freq: 293.66, dur: 2.5 }, // D4
+            { freq: 349.23, dur: 1.5 }, // F4
+            { freq: 392.00, dur: 0.5 }, // G4
+            { freq: 349.23, dur: 1.0 }, // F4
+            { freq: 293.66, dur: 2.5 }, // D4
+            { freq: 523.25, dur: 2.0 }, // C5
+            { freq: 523.25, dur: 1.0 }, // C5
+            { freq: 440.00, dur: 2.5 }, // A4
+            { freq: 466.16, dur: 2.0 }, // Bb4
+            { freq: 466.16, dur: 1.0 }, // Bb4
+            { freq: 349.23, dur: 2.5 }, // F4
+            { freq: 392.00, dur: 2.0 }, // G4
+            { freq: 392.00, dur: 1.0 }, // G4
+            { freq: 466.16, dur: 1.5 }, // Bb4
+            { freq: 440.00, dur: 0.5 }, // A4
+            { freq: 392.00, dur: 1.0 }, // G4
+            { freq: 349.23, dur: 1.5 }, // F4
+            { freq: 392.00, dur: 0.5 }, // G4
+            { freq: 349.23, dur: 1.0 }, // F4
+            { freq: 293.66, dur: 2.5 }  // D4
+          ];
+        }
+
+        unlock() {
+          try {
+            if (!this.ctx) {
+              const AudioCtx = window.AudioContext || window.webkitAudioContext;
+              this.ctx = new AudioCtx();
+              this.masterGain = this.ctx.createGain();
+              this.masterGain.gain.setValueAtTime(0.0001, this.ctx.currentTime);
+              this.masterGain.connect(this.ctx.destination);
+            }
+            if (this.ctx.state === 'suspended') {
+              this.ctx.resume();
+            }
+          } catch (err) {
+            console.warn('Web Audio initialization skipped:', err);
+          }
+        }
+
+        playBellNote(freq, durationSec) {
+          if (!this.ctx || !this.isPlaying) return;
+          const now = this.ctx.currentTime;
+
+          // Primary celesta fundamental (sine)
+          const osc1 = this.ctx.createOscillator();
+          osc1.type = 'sine';
+          osc1.frequency.setValueAtTime(freq, now);
+
+          // Soft octave shimmer harmonic (triangle)
+          const osc2 = this.ctx.createOscillator();
+          osc2.type = 'triangle';
+          osc2.frequency.setValueAtTime(freq * 2, now);
+
+          const noteGain = this.ctx.createGain();
+          const harmonicGain = this.ctx.createGain();
+          harmonicGain.gain.setValueAtTime(0.14, now);
+
+          // Music-box percussive envelope with warm release tail
+          noteGain.gain.setValueAtTime(0.0001, now);
+          noteGain.gain.linearRampToValueAtTime(0.22, now + 0.03);
+          noteGain.gain.exponentialRampToValueAtTime(0.0008, now + durationSec + 1.1);
+
+          osc1.connect(noteGain);
+          osc2.connect(harmonicGain);
+          harmonicGain.connect(noteGain);
+          noteGain.connect(this.masterGain);
+
+          osc1.start(now);
+          osc2.start(now);
+          osc1.stop(now + durationSec + 1.2);
+          osc2.stop(now + durationSec + 1.2);
+        }
+
+        scheduleNext() {
+          if (!this.isPlaying) return;
+          const note = this.melody[this.stepIndex % this.melody.length];
+          const beatSeconds = 0.52; // Calm, unhurried tempo
+          const durSec = note.dur * beatSeconds;
+
+          this.playBellNote(note.freq, durSec);
+          this.stepIndex++;
+
+          this.noteTimer = setTimeout(() => {
+            this.scheduleNext();
+          }, durSec * 1000);
+        }
+
+        fadeIn(duration = 1.2) {
+          this.unlock();
+          if (!this.ctx || !this.masterGain) return;
+
+          if (!this.isPlaying) {
+            this.isPlaying = true;
+            this.scheduleNext();
+          }
+
+          const now = this.ctx.currentTime;
+          const targetVol = state.isMuted ? 0.0001 : 0.28; // Mild, soothing volume
+          this.masterGain.gain.cancelScheduledValues(now);
+          this.masterGain.gain.setValueAtTime(Math.max(this.masterGain.gain.value, 0.0001), now);
+          this.masterGain.gain.exponentialRampToValueAtTime(targetVol, now + duration);
+        }
+
+        fadeOut(duration = 0.85) {
+          if (!this.ctx || !this.masterGain || !this.isPlaying) return;
+
+          const now = this.ctx.currentTime;
+          this.masterGain.gain.cancelScheduledValues(now);
+          this.masterGain.gain.setValueAtTime(Math.max(this.masterGain.gain.value, 0.0001), now);
+          this.masterGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+          // Stop scheduling new notes once faded out
+          clearTimeout(this.noteTimer);
+          setTimeout(() => {
+            if (this.masterGain && this.masterGain.gain.value <= 0.001) {
+              this.isPlaying = false;
+            }
+          }, duration * 1000 + 60);
+        }
+
+        updateMuteState() {
+          if (!this.ctx || !this.masterGain || !this.isPlaying) return;
+          const now = this.ctx.currentTime;
+          this.masterGain.gain.cancelScheduledValues(now);
+          this.masterGain.gain.setTargetAtTime(state.isMuted ? 0.0001 : 0.28, now, 0.15);
+        }
+      }
+
+      const musicBox = new HolidayMusicBox();
+
+      // ============================================================================
+      // 3. SUBTLE GOLDEN SPARKLE TRAIL FOR SWIPE INTERACTION (PAUSE 1)
+      // ============================================================================
+      const sparkleCanvas = document.getElementById('sparkle-canvas');
+      const sCtx = sparkleCanvas.getContext('2d');
+      let sparkles = [];
+      let sparkleAnimId = null;
+
+      function resizeSparkleCanvas() {
+        const rect = stage.getBoundingClientRect();
+        sparkleCanvas.width = rect.width * window.devicePixelRatio;
+        sparkleCanvas.height = rect.height * window.devicePixelRatio;
+        sCtx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      }
+
+      window.addEventListener('resize', resizeSparkleCanvas);
+      resizeSparkleCanvas();
+
+      function spawnSparkles(clientX, clientY) {
+        const rect = stage.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+
+        for (let i = 0; i < 4; i++) {
+          sparkles.push({
+            x,
+            y,
+            vx: (Math.random() - 0.5) * 2.2,
+            vy: (Math.random() - 0.5) * 2.2 - 0.5,
+            size: Math.random() * 2.8 + 1.2,
+            alpha: 1,
+            decay: Math.random() * 0.03 + 0.025
+          });
+        }
+        if (!sparkleAnimId) {
+          renderSparkles();
+        }
+      }
+
+      function renderSparkles() {
+        const rect = stage.getBoundingClientRect();
+        sCtx.clearRect(0, 0, rect.width, rect.height);
+
+        sparkles = sparkles.filter(p => p.alpha > 0.02);
+
+        for (const p of sparkles) {
+          p.x += p.vx;
+          p.y += p.vy;
+          p.alpha -= p.decay;
+
+          sCtx.save();
+          sCtx.globalAlpha = Math.max(0, p.alpha);
+          sCtx.fillStyle = '#ffe999';
+          sCtx.shadowColor = '#f6d365';
+          sCtx.shadowBlur = 8;
+          sCtx.beginPath();
+          sCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          sCtx.fill();
+          sCtx.restore();
+        }
+
+        if (sparkles.length > 0) {
+          sparkleAnimId = requestAnimationFrame(renderSparkles);
+        } else {
+          sparkleAnimId = null;
+        }
+      }
+
+      // ============================================================================
+      // 4. VIDEO TIMELINE SYNCHRONIZATION LOOP
+      // ============================================================================
+      function monitorTimeline() {
+        if (!video.paused && !video.ended) {
+          const t = video.currentTime;
+
+          // --- Trigger Pause 1: 0:00:06:01 (6.033s) - Swipe Interaction ---
+          if (!state.completed1 && !state.pausedAt1 && t >= TIMESTAMPS.PAUSE_1_SWIPE) {
+            video.pause();
+            video.currentTime = TIMESTAMPS.PAUSE_1_SWIPE;
+            state.pausedAt1 = true;
+            swipeZone.classList.add('active');
+            musicBox.fadeIn(1.2);
+            return requestAnimationFrame(monitorTimeline);
+          }
+
+          // --- Trigger Pause 2: 00:00:16:02 (16.067s) - Gift Box Tap Interaction ---
+          if (!state.completed2 && !state.pausedAt2 && t >= TIMESTAMPS.PAUSE_2_TAP) {
+            video.pause();
+            video.currentTime = TIMESTAMPS.PAUSE_2_TAP;
+            state.pausedAt2 = true;
+            giftHotspot.classList.add('active');
+            musicBox.fadeIn(1.2);
+            return requestAnimationFrame(monitorTimeline);
+          }
+
+          // --- Reveal Recipient Name: >= 00:00:22:20 (22.667s) ---
+          if (t >= TIMESTAMPS.SHOW_RECIPIENT) {
+            recipientOverlay.classList.add('visible');
+          } else {
+            recipientOverlay.classList.remove('visible');
+          }
+
+          // --- Reveal Sender Name: >= 00:00:25:19 (25.633s) ---
+          if (t >= TIMESTAMPS.SHOW_SENDER) {
+            senderOverlay.classList.add('visible');
+          } else {
+            senderOverlay.classList.remove('visible');
+          }
+
+          // --- Show Replay Button smoothly near end (31.5s) ---
+          if (t >= TIMESTAMPS.END_REPLAY) {
+            replayContainer.style.opacity = '1';
+          }
+        }
+
+        requestAnimationFrame(monitorTimeline);
+      }
+
+      // ============================================================================
+      // 5. INTERACTION HANDLERS (START, SWIPE ANY DIRECTION, TAP GIFT, REPLAY)
+      // ============================================================================
+      function startGreeting() {
+        if (state.videoMissing || video.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) {
+          missingVideoBanner.classList.remove('hidden');
+          localVideoPicker.click();
+          return;
+        }
+
+        state.started = true;
+        musicBox.unlock();
+        video.muted = state.isMuted;
+
+        video.play().then(() => {
+          startOverlay.style.opacity = '0';
+          setTimeout(() => {
+            startOverlay.style.display = 'none';
+          }, 650);
+        }).catch(err => {
+          console.warn('Unmuted autoplay restricted, falling back to muted playback:', err);
+          // Fallback: play muted if browser strictly blocks audio, then unmute on next gesture
+          video.muted = true;
+          video.play().then(() => {
+            startOverlay.style.opacity = '0';
+            setTimeout(() => {
+              startOverlay.style.display = 'none';
+            }, 650);
+          }).catch(() => {
+            handleVideoLoadError();
+          });
+        });
+      }
+
+      startBtn.addEventListener('click', startGreeting);
+
+      // --- Pause 1: Swipe in Any Direction (Touch + Mouse Drag) ---
+      let pointerStart = null;
+      const SWIPE_THRESHOLD = 35; // minimum 35px swipe in any direction
+
+      function completeSwipeInteraction() {
+        if (!state.pausedAt1) return;
+        state.pausedAt1 = false;
+        state.completed1 = true;
+        pointerStart = null;
+        swipeZone.classList.remove('active');
+        musicBox.fadeOut(0.8);
+        video.muted = state.isMuted;
+        video.play();
+      }
+
+      swipeZone.addEventListener('pointerdown', (e) => {
+        if (!state.pausedAt1) return;
+        pointerStart = { x: e.clientX, y: e.clientY };
+        spawnSparkles(e.clientX, e.clientY);
+      });
+
+      swipeZone.addEventListener('pointermove', (e) => {
+        if (!state.pausedAt1 || !pointerStart) return;
+        spawnSparkles(e.clientX, e.clientY);
+
+        const dx = e.clientX - pointerStart.x;
+        const dy = e.clientY - pointerStart.y;
+        const distance = Math.hypot(dx, dy);
+
+        if (distance >= SWIPE_THRESHOLD) {
+          completeSwipeInteraction();
+        }
+      });
+
+      swipeZone.addEventListener('pointerup', () => {
+        pointerStart = null;
+      });
+
+      swipeZone.addEventListener('pointercancel', () => {
+        pointerStart = null;
+      });
+
+      // Keyboard accessibility for Pause 1
+      swipeZone.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ' || e.key.startsWith('Arrow')) {
+          e.preventDefault();
+          completeSwipeInteraction();
+        }
+      });
+
+      // --- Pause 2: Tap on Gift Box (No external text prompt) ---
+      function completeGiftTapInteraction() {
+        if (!state.pausedAt2) return;
+        state.pausedAt2 = false;
+        state.completed2 = true;
+        giftHotspot.classList.remove('active');
+        musicBox.fadeOut(0.8);
+        video.play();
+      }
+
+      giftHotspot.addEventListener('click', completeGiftTapInteraction);
+
+      // --- Video Ended & Replay ---
+      video.addEventListener('ended', () => {
+        musicBox.fadeOut(0.8);
+        recipientOverlay.classList.add('visible');
+        senderOverlay.classList.add('visible');
+        replayContainer.style.opacity = '1';
+      });
+
+      replayBtn.addEventListener('click', () => {
+        replayContainer.style.opacity = '0';
+        state.pausedAt1 = false;
+        state.completed1 = false;
+        state.pausedAt2 = false;
+        state.completed2 = false;
+        swipeZone.classList.remove('active');
+        giftHotspot.classList.remove('active');
+        recipientOverlay.classList.remove('visible');
+        senderOverlay.classList.remove('visible');
+        musicBox.fadeOut(0.4);
+
+        video.currentTime = 0;
+        video.play();
+      });
+
+      // --- Mute / Unmute Toggle ---
+      muteToggleBtn.addEventListener('click', () => {
+        state.isMuted = !state.isMuted;
+        video.muted = state.isMuted;
+        musicBox.updateMuteState();
+
+        if (state.isMuted) {
+          iconSoundOn.classList.add('hidden');
+          iconSoundOff.classList.remove('hidden');
+        } else {
+          iconSoundOff.classList.add('hidden');
+          iconSoundOn.classList.remove('hidden');
+        }
+      });
+
+      // ============================================================================
+      // 6. DISCRETE SHAREABLE URL BUILDER (FOR SENDER)
+      // ============================================================================
+      function updateGeneratedLink() {
+        const url = new URL(window.location.href.split('?')[0]);
+        const toVal = inputTo.value.trim();
+        const fromVal = inputFrom.value.trim();
+
+        if (toVal) url.searchParams.set('to', toVal);
+        if (fromVal) url.searchParams.set('from', fromVal);
+
+        generatedUrlInput.value = url.toString();
+      }
+
+      openBuilderBtn.addEventListener('click', () => {
+        inputTo.value = state.recipientName === 'Friend & Family' ? '' : state.recipientName;
+        inputFrom.value = state.senderName === 'Your Friends' ? '' : state.senderName;
+        updateGeneratedLink();
+        linkBuilderModal.classList.remove('hidden');
+        linkBuilderModal.classList.add('flex');
+      });
+
+      closeBuilderBtn.addEventListener('click', () => {
+        linkBuilderModal.classList.add('hidden');
+        linkBuilderModal.classList.remove('flex');
+      });
+
+      inputTo.addEventListener('input', updateGeneratedLink);
+      inputFrom.addEventListener('input', updateGeneratedLink);
+
+      copyUrlBtn.addEventListener('click', () => {
+        generatedUrlInput.select();
+        generatedUrlInput.setSelectionRange(0, 99999);
+        try {
+          document.execCommand('copy');
+          copyFeedback.style.opacity = '1';
+          setTimeout(() => {
+            copyFeedback.style.opacity = '0';
+          }, 2400);
+        } catch (err) {
+          console.warn('Copy command failed:', err);
+        }
+      });
+
+      applyPreviewBtn.addEventListener('click', () => {
+        state.recipientName = inputTo.value.trim() || 'Friend & Family';
+        state.senderName = inputFrom.value.trim() || 'Your Friends';
+        applyNamesToDOM();
+        linkBuilderModal.classList.add('hidden');
+        linkBuilderModal.classList.remove('flex');
+      });
+
+      // --- Initialize App ---
+      initPersonalizationFromURL();
+      requestAnimationFrame(monitorTimeline);
+  </script>
+</body>
+</html>
